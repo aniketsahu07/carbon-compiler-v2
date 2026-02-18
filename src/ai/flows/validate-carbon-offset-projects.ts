@@ -2,14 +2,11 @@
 
 /**
  * @fileOverview AI-powered validation of carbon offset projects to prevent greenwashing.
- *
- * - validateCarbonOffsetProject - A function that validates the legitimacy and environmental impact of carbon offset projects.
- * - ValidateCarbonOffsetProjectInput - The input type for the validateCarbonOffsetProject function.
- * - ValidateCarbonOffsetProjectOutput - The return type for the validateCarbonOffsetProject function.
+ * Uses HuggingFace Inference Router (OpenAI-compatible) — same pipeline as ai-assistant.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import OpenAI from 'openai';
+import { z } from 'zod';
 
 const ValidateCarbonOffsetProjectInputSchema = z.object({
   projectDetails: z
@@ -32,30 +29,53 @@ export type ValidateCarbonOffsetProjectOutput = z.infer<typeof ValidateCarbonOff
 export async function validateCarbonOffsetProject(
   input: ValidateCarbonOffsetProjectInput
 ): Promise<ValidateCarbonOffsetProjectOutput> {
-  return validateCarbonOffsetProjectFlow(input);
+  const apiKey = process.env.HUGGINGFACE_API_KEY;
+  if (!apiKey) {
+    throw new Error('HUGGINGFACE_API_KEY is not configured.');
+  }
+
+  const model = process.env.MAIN_MODEL || 'Qwen/Qwen2.5-7B-Instruct';
+  const client = new OpenAI({ apiKey, baseURL: 'https://router.huggingface.co/v1' });
+
+  const systemPrompt = `You are an expert auditor specializing in validating carbon offset projects and preventing greenwashing.
+
+Analyze the project details and respond ONLY with a valid JSON object (no markdown, no explanation) in this exact format:
+{
+  "legitimacyScore": <number 0-100>,
+  "environmentalImpactAssessment": "<string>",
+  "redFlags": ["<string>", ...]
 }
 
-const validateCarbonOffsetProjectPrompt = ai.definePrompt({
-  name: 'validateCarbonOffsetProjectPrompt',
-  input: {schema: ValidateCarbonOffsetProjectInputSchema},
-  output: {schema: ValidateCarbonOffsetProjectOutputSchema},
-  prompt: `You are an expert auditor specializing in validating carbon offset projects and preventing greenwashing.
+Rules:
+- legitimacyScore: 0 = complete fraud/greenwashing, 100 = fully credible & certified
+- environmentalImpactAssessment: 2-4 sentences about actual environmental benefit
+- redFlags: array of specific concerns (empty array [] if none)`;
 
-You will analyze the project details provided and assess their legitimacy and environmental impact.
+  const userMessage = `Validate this carbon offset project:\n\n${input.projectDetails}`;
 
-Based on your analysis, provide a legitimacy score (0-100), an environmental impact assessment, and a list of any potential red flags.
+  const completion = await client.chat.completions.create({
+    model,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userMessage },
+    ],
+    temperature: 0.3,
+    max_tokens: 600,
+  });
 
-Project Details: {{{projectDetails}}}`,
-});
+  const raw = completion.choices[0]?.message?.content?.trim() ?? '';
 
-const validateCarbonOffsetProjectFlow = ai.defineFlow(
-  {
-    name: 'validateCarbonOffsetProjectFlow',
-    inputSchema: ValidateCarbonOffsetProjectInputSchema,
-    outputSchema: ValidateCarbonOffsetProjectOutputSchema,
-  },
-  async input => {
-    const {output} = await validateCarbonOffsetProjectPrompt(input);
-    return output!;
+  // Extract JSON — model may wrap in ```json ... ```
+  const jsonMatch = raw.match(/\{[\s\S]*\}/);
+  if (!jsonMatch) {
+    throw new Error('AI returned invalid response. Please try again.');
   }
-);
+
+  const parsed = JSON.parse(jsonMatch[0]);
+
+  return {
+    legitimacyScore: Math.min(100, Math.max(0, Number(parsed.legitimacyScore) || 50)),
+    environmentalImpactAssessment: String(parsed.environmentalImpactAssessment || ''),
+    redFlags: Array.isArray(parsed.redFlags) ? parsed.redFlags.map(String) : [],
+  };
+}
