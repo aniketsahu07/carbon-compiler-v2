@@ -9,6 +9,15 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  // Yeh packages Turbopack/Webpack ke through bundle nahi honge.
+  // Seedha Node.js runtime se load honge — buffer compatibility fix.
+  serverExternalPackages: [
+    'genkit',
+    '@genkit-ai/google-genai',
+    '@genkit-ai/ai',
+    '@genkit-ai/core',
+    'firebase-admin',
+  ],
   images: {
     remotePatterns: [
       {

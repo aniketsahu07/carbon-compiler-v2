@@ -5,9 +5,24 @@
 build: npm run build
 
 # The command to start your app
-start: npm run start
+start: next start
 
 runConfig:
   # Increase this value if you'd like to automatically spin up
   # more instances in response to increased traffic.
   maxInstances: 1
+
+env:
+  # Non-sensitive config — safe to keep in this file
+  - variable: MAIN_MODEL
+    value: Qwen/Qwen2.5-7B-Instruct
+    availability:
+      - BUILD
+      - RUNTIME
+
+  # Sensitive API key — stored in Firebase Secret Manager
+  # Run once: firebase apphosting:secrets:set huggingface-api-key
+  - variable: HUGGINGFACE_API_KEY
+    secret: huggingface-api-key
+    availability:
+      - RUNTIME

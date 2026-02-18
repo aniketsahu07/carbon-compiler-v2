@@ -8,11 +8,10 @@ import { Bot, User, Send, Loader2 } from 'lucide-react';
 import { chatWithAssistant, type ChatWithAssistantOutput } from '@/ai/flows/ai-assistant';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Part } from '@genkit-ai/google-genai';
 
 interface Message {
-  role: 'user' | 'model' | 'system';
-  content: Part[];
+  role: 'user' | 'model';
+  content: { text: string }[];
 }
 
 export default function AIAssistantPage() {
@@ -33,7 +32,7 @@ export default function AIAssistantPage() {
     try {
       const result: ChatWithAssistantOutput = await chatWithAssistant({
         message: input,
-        history: messages.filter(m => m.role !== 'system'), // Don't send system message in history
+        history: messages,
       });
       const assistantMessage: Message = { role: 'model', content: [{ text: result.response }] };
       setMessages((prev) => [...prev, assistantMessage]);
