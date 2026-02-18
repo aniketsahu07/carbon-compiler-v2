@@ -1,0 +1,106 @@
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper Functions
+
+    /**
+     * Checks if the user is authenticated.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Checks if the authenticated user's UID matches the provided userId.
+     * This is the primary function for verifying document ownership.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    /**
+     * Checks if the user is the designated Super Admin.
+     * IMPORTANT: Replace the placeholder with your actual Firebase UID.
+     */
+    function isSuperAdmin() {
+        return request.auth.uid == 'Q17HsdR4RONCBdVA6hnOiisUCBh1';
+    }
+
+
+    /**
+     * Checks for ownership on an existing document. Used for update/delete
+     * operations to ensure the document exists before the operation is allowed.
+     */
+    function isExistingOwner(userId) {
+      return isOwner(userId) && resource != null;
+    }
+
+    /**
+     * Validates that a specific field in the incoming data matches the
+     * authenticated user's UID. Used to enforce ownership on document creation.
+     */
+    function incomingDataMatchesAuth(fieldName) {
+      return isSignedIn() && request.resource.data[fieldName] == request.auth.uid;
+    }
+
+    /**
+     * Enforces immutability for a given field on update operations.
+     * Prevents critical relational keys from being changed after creation.
+     */
+    function fieldIsImmutable(fieldName) {
+      return request.resource.data[fieldName] == resource.data[fieldName];
+    }
+    
+    // Collection Rules
+
+    match /users/{userId} {
+      allow get: if isOwner(userId);
+      allow list: if false;
+      allow create: if isOwner(userId) && request.resource.data.id == userId;
+      allow update: if isExistingOwner(userId) && fieldIsImmutable('id');
+      allow delete: if isExistingOwner(userId);
+
+      // Subcollections for user-specific data
+      match /cart/{cartItemId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /portfolio/{portfolioId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /claimHistory/{claimHistoryItemId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /carbonCredits/{carbonCreditId} {
+      allow get: if true;
+      allow list: if true;
+      allow create: if isSuperAdmin();
+      allow update: if isSuperAdmin();
+      allow delete: if isSuperAdmin();
+    }
+
+    match /projects/{projectId} {
+      allow get: if isSignedIn();
+      // Allow any signed-in user to list projects. Specific queries for developers are handled on the client.
+      // Super Admins can list all.
+      allow list: if isSignedIn();
+      allow create: if isSignedIn()
+                    && incomingDataMatchesAuth('developerId')
+                    && request.resource.data.status == 'Under Validation';
+      // Only the Super Admin can update a project's status
+      allow update: if isSuperAdmin() && fieldIsImmutable('developerId');
+      allow delete: if false;
+    }
+
+    match /transactions/{transactionId} {
+      allow get: if isOwner(resource.data.userId);
+      allow list: if false;
+      allow create: if incomingDataMatchesAuth('userId');
+      allow update: if isExistingOwner(resource.data.userId) && fieldIsImmutable('userId');
+      allow delete: if isExistingOwner(resource.data.userId);
+    }
+  }
+}

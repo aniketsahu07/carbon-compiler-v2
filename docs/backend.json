@@ -1,0 +1,396 @@
+
+{
+  "entities": {
+    "User": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "User",
+      "type": "object",
+      "description": "Represents a user of the CarbonClear Exchange platform.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the User entity."
+        },
+        "firstName": {
+          "type": "string",
+          "description": "The first name of the user."
+        },
+        "lastName": {
+          "type": "string",
+          "description": "The last name of the user."
+        },
+        "userName": {
+          "type": "string",
+          "description": "The username of the user."
+        },
+        "email": {
+          "type": "string",
+          "description": "The email address of the user.",
+          "format": "email"
+        },
+        "role": {
+          "type": "string",
+          "description": "The role of the user on the platform.",
+          "enum": ["BUYER", "DEVELOPER", "ADMIN"]
+        },
+        "registrationDate": {
+          "type": "string",
+          "description": "The date and time the user registered.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "userName",
+        "email",
+        "role",
+        "registrationDate"
+      ]
+    },
+    "CartItem": {
+      "title": "Cart Item",
+      "type": "object",
+      "description": "Represents an item in a user's shopping cart.",
+      "properties": {
+        "creditId": {
+          "type": "string",
+          "description": "The ID of the CarbonCredit project."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the project."
+        },
+        "price": {
+          "type": "number",
+          "description": "Price per ton at the time of adding to cart."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "Number of tons to purchase."
+        }
+      },
+      "required": ["creditId", "name", "price", "quantity"]
+    },
+    "PortfolioItem": {
+      "title": "Portfolio Item",
+      "type": "object",
+      "description": "Represents a block of purchased carbon credits in a user's portfolio.",
+      "properties": {
+        "creditId": {
+          "type": "string",
+          "description": "The ID of the CarbonCredit project."
+        },
+        "tons": {
+          "type": "number",
+          "description": "The quantity of credits (tons) owned."
+        },
+        "purchaseDate": {
+          "type": "string",
+          "description": "The ISO date string of when the credits were purchased.",
+          "format": "date-time"
+        }
+      },
+      "required": ["creditId", "tons", "purchaseDate"]
+    },
+    "Project": {
+      "title": "Project",
+      "type": "object",
+      "description": "A carbon offset project submitted by a developer.",
+      "properties": {
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "country": { "type": "string" },
+        "projectType": { "type": "string" },
+        "vintageYear": { "type": "number" },
+        "availableTons": { "type": "number" },
+        "developerId": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Approved", "Rejected"] }
+      },
+      "required": ["name", "description", "country", "projectType", "vintageYear", "availableTons", "developerId", "status"]
+    },
+    "CarbonCredit": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CarbonCredit",
+      "type": "object",
+      "description": "Represents a carbon credit available on the exchange.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CarbonCredit entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name or title of the carbon credit."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the carbon credit."
+        },
+        "origin": {
+          "type": "string",
+          "description": "The origin or source of the carbon credit."
+        },
+        "carbonOffsetProject": {
+          "type": "string",
+          "description": "Reference to CarbonOffsetProject. (Relationship: CarbonCredit 1:1 CarbonOffsetProject)"
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of the carbon credit."
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of the carbon credit available."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "origin",
+        "type",
+        "carbonOffsetProject",
+        "quantity"
+      ]
+    },
+    "Transaction": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "Transaction",
+      "type": "object",
+      "description": "Represents a transaction on the CarbonClear Exchange.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the Transaction entity."
+        },
+        "buyerId": {
+          "type": "string",
+          "description": "Reference to User (buyer). (Relationship: User 1:N Transaction)"
+        },
+        "sellerId": {
+          "type": "string",
+          "description": "Reference to User (seller). (Relationship: User 1:N Transaction)"
+        },
+        "carbonCreditId": {
+          "type": "string",
+          "description": "Reference to CarbonCredit. (Relationship: CarbonCredit 1:N Transaction)"
+        },
+        "quantity": {
+          "type": "number",
+          "description": "The quantity of carbon credits transacted."
+        },
+        "price": {
+          "type": "number",
+          "description": "The price per carbon credit in the transaction."
+        },
+        "transactionDate": {
+          "type": "string",
+          "description": "The date and time of the transaction.",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "buyerId",
+        "sellerId",
+        "carbonCreditId",
+        "quantity",
+        "price",
+        "transactionDate"
+      ]
+    },
+    "CarbonOffsetProject": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "CarbonOffsetProject",
+      "type": "object",
+      "description": "Represents a carbon offset project.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the CarbonOffsetProject entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the carbon offset project."
+        },
+        "description": {
+          "type": "string",
+          "description": "A detailed description of the carbon offset project."
+        },
+        "location": {
+          "type": "string",
+          "description": "The location of the carbon offset project."
+        },
+        "type": {
+          "type": "string",
+          "description": "The type of carbon offset project (e.g., reforestation, renewable energy)."
+        },
+        "validationSystemId": {
+          "type": "string",
+          "description": "Reference to ValidationSystem. (Relationship: CarbonOffsetProject 1:1 ValidationSystem)"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "location",
+        "type",
+        "validationSystemId"
+      ]
+    },
+    "ValidationSystem": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "title": "ValidationSystem",
+      "type": "object",
+      "description": "Represents the validation system used to verify the carbon offset project.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the ValidationSystem entity."
+        },
+        "name": {
+          "type": "string",
+          "description": "The name of the validation system (e.g., Gold Standard, Verified Carbon Standard)."
+        },
+        "description": {
+          "type": "string",
+          "description": "A description of the validation system and its methodology."
+        },
+        "validationDate": {
+          "type": "string",
+          "description": "The date when the carbon offset project was last validated.",
+          "format": "date-time"
+        },
+        "score": {
+          "type": "number",
+          "description": "The AI generated score of the validation system."
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "validationDate",
+        "score"
+      ]
+    }
+  },
+  "auth": {
+    "providers": [
+      "password",
+      "anonymous"
+    ]
+  },
+  "firestore": {
+    "structure": [
+      {
+        "path": "/users/{userId}",
+        "definition": {
+          "entityName": "User",
+          "schema": {
+            "$ref": "#/backend/entities/User"
+          },
+          "description": "Stores user profiles. Path-based ownership ensures only the user (or admin) can access their profile.",
+          "params": [
+            {
+              "name": "userId",
+              "description": "The unique ID of the user."
+            }
+          ]
+        },
+        "subcollections": [
+          {
+            "path": "cart/{cartItemId}",
+            "definition": {
+              "entityName": "CartItem",
+              "schema": { "$ref": "#/backend/entities/CartItem" },
+              "description": "User's shopping cart items."
+            }
+          },
+          {
+            "path": "portfolio/{portfolioId}",
+            "definition": {
+              "entityName": "PortfolioItem",
+              "schema": { "$ref": "#/backend/entities/PortfolioItem" },
+              "description": "User's purchased carbon credits."
+            }
+          }
+        ]
+      },
+      {
+        "path": "/projects/{projectId}",
+        "definition": {
+          "entityName": "Project",
+          "schema": { "$ref": "#/backend/entities/Project"},
+          "description": "Carbon offset projects submitted by developers, pending validation."
+        }
+      },
+      {
+        "path": "/carbonCredits/{carbonCreditId}",
+        "definition": {
+          "entityName": "CarbonCredit",
+          "schema": {
+            "$ref": "#/backend/entities/CarbonCredit"
+          },
+          "description": "Stores carbon credit listings. Open access for reading, restricted write access to authorized users. carbonOffsetProject included for QAP.",
+          "params": [
+            {
+              "name": "carbonCreditId",
+              "description": "The unique ID of the carbon credit."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/transactions/{transactionId}",
+        "definition": {
+          "entityName": "Transaction",
+          "schema": {
+            "$ref": "#/backend/entities/Transaction"
+          },
+          "description": "Stores transaction records.  Authorization rules ensure that only the buyer, seller, or admins can access transaction details. carbonCreditId also to provide a QAP.",
+          "params": [
+            {
+              "name": "transactionId",
+              "description": "The unique ID of the transaction."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/carbonOffsetProjects/{carbonOffsetProjectId}",
+        "definition": {
+          "entityName": "CarbonOffsetProject",
+          "schema": {
+            "$ref": "#/backend/entities/CarbonOffsetProject"
+          },
+          "description": "Stores carbon offset project details.  Accessible for informational purposes, with restricted write access.",
+          "params": [
+            {
+              "name": "carbonOffsetProjectId",
+              "description": "The unique ID of the carbon offset project."
+            }
+          ]
+        }
+      },
+      {
+        "path": "/validationSystems/{validationSystemId}",
+        "definition": {
+          "entityName": "ValidationSystem",
+          "schema": {
+            "$ref": "#/backend/entities/ValidationSystem"
+          },
+          "description": "Stores validation system data.  Used by the AI validation tool; access restrictions apply.",
+          "params": [
+            {
+              "name": "validationSystemId",
+              "description": "The unique ID of the validation system."
+            }
+          ]
+        }
+      }
+    ],
+    "reasoning": "The Firestore data structure is designed to support the CarbonClear Exchange platform, prioritizing blockchain transparency, carbon credit trading, tracking, and greenwashing prevention. The design emphasizes authorization independence and efficient querying, crucial for building secure and scalable applications.  The key design considerations are Authorization Independence, Structural Segregation, and Explicit Access Modeling. Authorization Independence is achieved through denormalization of access control data into subcollections, thus avoiding the need for `get()` calls in security rules.  Structural Segregation ensures that collections contain data with uniform access needs, which simplifies security rule definitions. Access Modeling employs path-based ownership for private user data and membership maps for collaborative data.\n\nSpecifically, the structure facilitates these core features:\n\n1.  **Users**: User data is stored under `/users/{userId}`. This path-based ownership simplifies security rules, ensuring only the user can access their data. User-specific data like `cart` and `portfolio` are stored in subcollections under the user's document, inheriting the same ownership-based security.\n2. **Projects**: A top-level `/projects` collection is added for developers to submit new carbon offset projects. Security rules ensure a developer can only create projects linked to their own user ID.\n3.  **Carbon Credits**: Carbon credits are stored in a top-level `/carbonCredits` collection. Since the platform facilitates trading, access isn't strictly owner-based.\n4.  **Transactions**: Transactions are stored in a top-level `/transactions` collection.  Transactions reference both buyer and seller IDs, enabling efficient querying for transaction history.  Authorization rules can ensure that only involved parties (buyer/seller) or admins can access transaction details. CarbonCreditId also to provide a QAP.\n5.  **Carbon Offset Projects**: Carbon offset projects are stored in a top-level `/carbonOffsetProjects` collection. Similar to carbon credits, these are broadly accessible for informational purposes.\n6.  **Validation Systems**: Validation systems are stored in a top-level `/validationSystems` collection, allowing the AI validation tool to operate on this data.\n\nThis structure allows list operations (QAPs) on key entities like carbon credits, transactions, and offset projects without compromising security. The segregation of data by type simplifies security rules, while denormalization prevents dependency on hierarchical authorization."
+  }
+}
