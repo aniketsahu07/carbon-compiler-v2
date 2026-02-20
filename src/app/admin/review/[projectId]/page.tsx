@@ -5,7 +5,8 @@ import { useParams, useRouter, notFound } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc, setDoc, collection, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, setDoc, collection, getDoc, addDoc } from 'firebase/firestore';
+import { useUser } from '@/firebase';
 import type { Project, CarbonCredit } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,6 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, ThumbsUp, ThumbsDown, User, Hash, Calendar, Globe, Award, FileText, ShieldCheck, ScanSearch, Link as LinkIcon, Star, Download } from 'lucide-react';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { calculateProjectMetrics } from '@/lib/carbon-matrix';
@@ -27,22 +27,13 @@ function generateTxHash(): string {
   return hash;
 }
 
-const projectTypeToImageId: Record<string, string> = {
-    'Renewable Energy': 'solar-farm-india',
-    'Reforestation': 'sundarbans-mangrove',
-    'Methane Capture': 'methane-capture-india',
-    'Direct Air Capture': 'usa-dac',
-    'Geothermal': 'kenya-geothermal',
-    'Hydroelectric': 'hydro-power'
-};
-
-
 export default function ReviewProjectPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
   const projectId = params.projectId as string;
   const firestore = useFirestore();
+  const { user } = useUser();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [projectData, setProjectData] = useState<Project | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -67,12 +58,37 @@ export default function ReviewProjectPage() {
     fetchProject();
   }, [projectId, firestore]);
 
+  const projectTypeImages: Record<string, { url: string; hint: string }> = {
+    'Reforestation': {
+      url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80',
+      hint: 'forest canopy green reforestation',
+    },
+    'Renewable Energy': {
+      url: 'https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&q=80',
+      hint: 'solar panels aerial renewable energy',
+    },
+    'Methane Capture': {
+      url: 'https://images.unsplash.com/photo-1497435334941-8c899a9bd771?w=800&q=80',
+      hint: 'industrial gas plant methane capture',
+    },
+    'Direct Air Capture': {
+      url: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80',
+      hint: 'industrial carbon capture plant',
+    },
+    'Geothermal': {
+      url: 'https://images.unsplash.com/photo-1661755877249-b0fe30accbb1?w=800&q=80',
+      hint: 'geothermal steam power plant',
+    },
+    'Hydroelectric': {
+      url: 'https://images.unsplash.com/photo-1505036952194-547a06413a96?w=800&q=80',
+      hint: 'hydroelectric dam water power',
+    },
+  };
+
   const getImage = (projectType: string) => {
-    const imageId = projectTypeToImageId[projectType] || 'reforestation-project';
-    const image = PlaceHolderImages.find(img => img.id === imageId);
-    return {
-      url: image?.imageUrl ?? 'https://picsum.photos/seed/1/600/400',
-      hint: image?.imageHint ?? 'placeholder',
+    return projectTypeImages[projectType] ?? {
+      url: 'https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80',
+      hint: 'carbon offset project',
     };
   };
 
@@ -83,43 +99,50 @@ export default function ReviewProjectPage() {
     const projectRef = doc(firestore, 'projects', projectId);
 
     try {
+        // Step 1: Update project status — this is the critical step
         await updateDoc(projectRef, { status });
 
+        // Step 2: If approved, create carbonCredits entry (best-effort — won't block approval)
         if (status === 'Verified') {
-            const carbonCreditsColRef = collection(firestore, 'carbonCredits');
-            const newCreditRef = doc(carbonCreditsColRef, projectId); 
-            const image = getImage(projectData.projectType);
-            
-            // Calculate dynamic metrics using the new engine
-            const { finalIntegrityScore, dynamicPrice } = calculateProjectMetrics(projectData);
-            
-            const creditData: Omit<CarbonCredit, 'id'> = {
-                name: projectData.name,
-                description: projectData.description.substring(0, 100) + '...',
-                fullDescription: projectData.description,
-                origin: projectData.country,
-                projectType: projectData.projectType as any,
-                // CRITICAL CHANGE: Initialize with 0 tons. Tons will be added from the "Issue Credits" page.
-                availableTons: 0,
-                price: dynamicPrice, // Use dynamic price
-                vintageYear: projectData.vintageYear,
-                verificationStatus: 'Verified',
-                authority: 'BEE India', // Placeholder authority
-                imageUrl: image.url,
-                imageHint: image.hint,
-                qualityMetrics: {
-                    integrityScore: finalIntegrityScore, // Use dynamic score
-                    // Base metrics can be kept as-is or derived as well
-                    additionality: Math.floor(Math.random() * 21) + 75,
-                    permanence: Math.floor(Math.random() * 21) + 80,
-                    leakage: Math.floor(Math.random() * 31) + 65,
-                    mrv: Math.floor(Math.random() * 21) + 78,
-                    registryCompliance: 95,
-                    caStatus: Math.random() > 0.4 ? 100 : 0,
-                }
-            };
-            // Use setDoc here to CREATE the document. This ensures it exists before trying to issue credits.
-            await setDoc(newCreditRef, creditData);
+            try {
+                const carbonCreditsColRef = collection(firestore, 'carbonCredits');
+                const newCreditRef = doc(carbonCreditsColRef, projectId); 
+                const image = getImage(projectData.projectType);
+                
+                const { finalIntegrityScore, dynamicPrice } = calculateProjectMetrics(projectData);
+                const finalPrice = projectData.pricePerTon && projectData.pricePerTon > 0
+                  ? projectData.pricePerTon
+                  : dynamicPrice;
+                
+                const creditData: Omit<CarbonCredit, 'id'> = {
+                    name: projectData.name,
+                    description: projectData.description.substring(0, 100) + '...',
+                    fullDescription: projectData.description,
+                    origin: projectData.country,
+                    projectType: projectData.projectType as any,
+                    availableTons: 0,
+                    price: finalPrice,
+                    vintageYear: projectData.vintageYear,
+                    verificationStatus: 'Verified',
+                    authority: 'BEE India',
+                    imageUrl: image.url,
+                    imageHint: image.hint,
+                    qualityMetrics: {
+                        integrityScore: finalIntegrityScore,
+                        additionality: Math.floor(Math.random() * 21) + 75,
+                        permanence: Math.floor(Math.random() * 21) + 80,
+                        leakage: Math.floor(Math.random() * 31) + 65,
+                        mrv: Math.floor(Math.random() * 21) + 78,
+                        registryCompliance: 95,
+                        caStatus: Math.random() > 0.4 ? 100 : 0,
+                    }
+                };
+                await setDoc(newCreditRef, creditData);
+            } catch (creditErr) {
+                // Credit creation failed (likely Firestore rules) — project is still approved
+                // Admin can manually issue credits from the "Issue Credits" page
+                console.error('Carbon credit creation failed (non-critical):', creditErr);
+            }
 
             // Write ISSUED ledger entry via internal API (no Firestore security rules)
             try {
@@ -146,6 +169,23 @@ export default function ReviewProjectPage() {
             description: `${projectData?.name} has been successfully ${status.toLowerCase()}.`,
             variant: status === 'Rejected' ? 'destructive' : 'default',
         });
+
+        // Notify the developer
+        try {
+          await addDoc(collection(firestore, `users/${projectData.developerId}/notifications`), {
+            title: status === 'Verified' ? '✅ Project Approved!' : '❌ Project Rejected',
+            message:
+              status === 'Verified'
+                ? `Your project "${projectData.name}" has been approved and is now listed on the marketplace.`
+                : `Your project "${projectData.name}" was rejected. Please review and re-submit if needed.`,
+            read: false,
+            createdAt: new Date().toISOString(),
+            link: '/developer/projects',
+          });
+        } catch (notifErr) {
+          console.error('Notification write failed (non-critical):', notifErr);
+        }
+
         router.push('/admin/dashboard');
 
     } catch (error) {
@@ -256,6 +296,17 @@ export default function ReviewProjectPage() {
                                     <p className="font-semibold">Credits to Issue</p>
                                     <p className="text-muted-foreground">{projectData.availableTons.toLocaleString()} tCO₂e</p>
                                  </div>
+                            </div>
+                            <div className="flex items-start gap-3">
+                                <Star className="h-5 w-5 text-primary mt-0.5" />
+                                <div>
+                                    <p className="font-semibold">Developer's Requested Price</p>
+                                    <p className="text-muted-foreground">
+                                      {projectData.pricePerTon
+                                        ? `₹${projectData.pricePerTon.toLocaleString()} / tCO₂e`
+                                        : 'Not set — dynamic pricing will apply'}
+                                    </p>
+                                </div>
                             </div>
                             <div className="flex items-start gap-3">
                                 <ShieldCheck className="h-5 w-5 text-primary mt-0.5" />
