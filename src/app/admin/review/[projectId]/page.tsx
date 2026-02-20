@@ -13,8 +13,6 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, ThumbsUp, ThumbsDown, User, Hash, Calendar, Globe, Award, FileText, ShieldCheck, ScanSearch, Link as LinkIcon, Star, Download } from 'lucide-react';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { calculateProjectMetrics } from '@/lib/carbon-matrix';
@@ -190,11 +188,6 @@ export default function ReviewProjectPage() {
 
     } catch (error) {
         console.error("Decision failed:", error);
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-            path: projectRef.path,
-            operation: 'update',
-            requestResourceData: { status }
-        }));
         toast({
             variant: "destructive",
             title: "Operation Failed",
