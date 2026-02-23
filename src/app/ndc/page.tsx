@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Scale } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useFirestore, useCollection, useMemoFirebase } from "@/firebase";
-import { collection } from "firebase/firestore";
+import { collection, query, where } from "firebase/firestore";
 import type { CarbonCredit } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NdcDetailsModal } from '@/components/ndc-details-modal';
@@ -19,7 +19,10 @@ export default function NdcTrackingPage() {
 
     const creditsQuery = useMemoFirebase(() => {
         if (!firestore) return null;
-        return collection(firestore, 'carbonCredits');
+        return query(
+            collection(firestore, 'carbonCredits'),
+            where('verificationStatus', '==', 'Verified')
+        );
     }, [firestore]);
 
     const { data: carbonCredits, isLoading } = useCollection<CarbonCredit>(creditsQuery);

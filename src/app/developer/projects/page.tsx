@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Eye, Info, PlusCircle } from "lucide-react";
+import { Eye, Info, PlusCircle, Pencil } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Link from "next/link";
 import { useUser, useFirestore, useCollection, useMemoFirebase } from "@/firebase";
@@ -106,10 +106,20 @@ export default function DeveloperProjectsPage() {
                                                 </div>
                                             </TableCell>
                                             <TableCell className="text-right">
-                                                <Button size="sm" variant="outline" onClick={() => setSelectedProject(project)}>
-                                                    <Eye className="mr-2 h-4 w-4" />
-                                                    View
-                                                </Button>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    {project.status === 'Under Validation' && (
+                                                        <Button size="sm" variant="outline" asChild>
+                                                            <Link href={`/developer/edit-project/${project.id}`}>
+                                                                <Pencil className="mr-2 h-4 w-4" />
+                                                                Edit
+                                                            </Link>
+                                                        </Button>
+                                                    )}
+                                                    <Button size="sm" variant="outline" onClick={() => setSelectedProject(project)}>
+                                                        <Eye className="mr-2 h-4 w-4" />
+                                                        View
+                                                    </Button>
+                                                </div>
                                             </TableCell>
                                         </TableRow>
                                     ))

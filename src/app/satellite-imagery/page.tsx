@@ -1,15 +1,21 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, AlertTriangle, Trees, Map, Sun, Wind, Mountain, Layers, AreaChart, Zap, Scaling, Leaf, Droplets, Thermometer, Filter, Factory } from 'lucide-react';
-import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Dynamically import with SSR disabled — Leaflet requires browser window
+const SatelliteMap = dynamic(() => import('@/components/SatelliteMap'), {
+  ssr: false,
+  loading: () => <Skeleton className="h-[400px] w-full rounded-lg" />,
+});
 
 type ProjectType = 'Renewable Energy' | 'Reforestation' | 'Hydroelectric' | 'Geothermal' | 'Direct Air Capture';
 
@@ -78,16 +84,20 @@ export default function SatelliteImageryPage() {
     pending: false,
     error: undefined,
   });
+  // Track the zone that was actually analyzed (for the map)
+  const [analyzedZone, setAnalyzedZone] = useState<string | null>(null);
   
   const handleProjectTypeChange = (type: ProjectType) => {
       setProjectType(type);
       setZone(projectPresets[type].zone);
       setAnalysisState({ result: null, pending: false, error: undefined });
+      setAnalyzedZone(null);
   }
 
   const handleAnalyze = async () => {
     if (!zone.trim()) return;
     setAnalysisState({ result: null, pending: true, error: undefined });
+    setAnalyzedZone(zone); // capture zone before async delay
     await new Promise(resolve => setTimeout(resolve, 2500)); // Simulate AI analysis delay
 
     let simulatedResult: AnalysisResult;
@@ -144,8 +154,6 @@ export default function SatelliteImageryPage() {
     setAnalysisState({ result: simulatedResult, pending: false, error: undefined });
   };
   
-  const mapImage = PlaceHolderImages.find(img => img.id === projectPresets[projectType].mapId);
-
   const renderResultMetrics = () => {
     if (!analysisState.result) return null;
 
@@ -351,15 +359,11 @@ export default function SatelliteImageryPage() {
           <CardContent className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                    <Label>Visual Confirmation</Label>
+                    <Label>Live Satellite View</Label>
                     <div className="border rounded-lg overflow-hidden">
-                        <Image 
-                            src={mapImage?.imageUrl ?? 'https://placehold.co/600x400/104f3c/FFFFFF?text=Satellite+View'}
-                            alt={`Satellite map for ${projectType}`}
-                            width={600}
-                            height={400}
-                            className="w-full h-auto object-cover"
-                            data-ai-hint={mapImage?.imageHint}
+                        <SatelliteMap
+                            coordinateString={analyzedZone ?? zone}
+                            projectType={projectType}
                         />
                     </div>
                 </div>

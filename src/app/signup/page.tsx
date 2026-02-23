@@ -26,7 +26,7 @@ import { FirebaseError } from 'firebase/app';
 import { BrandLogo } from '@/components/icons';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { UserRole } from '@/lib/types';
-import { SUPER_ADMIN_EMAIL } from '@/lib/config';
+import { ADMIN_EMAILS } from '@/lib/config';
 
 
 const formSchema = z.object({
@@ -73,7 +73,7 @@ export default function SignupPage() {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (values.role === 'ADMIN' && values.email !== SUPER_ADMIN_EMAIL) {
+    if (values.role === 'ADMIN' && !ADMIN_EMAILS.includes(values.email)) {
         toast({
             variant: 'destructive',
             title: 'Unauthorized Admin',

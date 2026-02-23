@@ -72,14 +72,28 @@ service cloud.firestore {
       match /claimHistory/{claimHistoryItemId} {
         allow read, write: if isOwner(userId);
       }
+      match /notifications/{notifId} {
+        allow read, write: if isOwner(userId);
+      }
     }
 
     match /carbonCredits/{carbonCreditId} {
       allow get: if true;
       allow list: if true;
       allow create: if isSuperAdmin();
-      allow update: if isSuperAdmin();
+      // Super Admin can update anything.
+      // Signed-in buyers can ONLY decrement availableTons (purchase flow).
+      allow update: if isSuperAdmin()
+                    || (isSignedIn()
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['availableTons'])
+                        && request.resource.data.availableTons < resource.data.availableTons);
       allow delete: if isSuperAdmin();
+    }
+
+    match /auditLog/{entryId} {
+      allow read: if isSuperAdmin();
+      allow create: if isSuperAdmin();
+      allow update, delete: if false;
     }
 
     match /projects/{projectId} {

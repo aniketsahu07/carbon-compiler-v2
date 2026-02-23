@@ -3,86 +3,86 @@
     {
       "id": "reforestation-project",
       "description": "A lush forest with sunlight filtering through the trees.",
-      "imageUrl": "https://images.unsplash.com/photo-1593431074633-21ef64707d29?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Zm9yZXN0JTIwdHJlZXN8ZW58MHx8fHwxNzY2NTI0NDgxfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "forest trees"
+      "imageUrl": "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
+      "imageHint": "forest canopy green"
     },
     {
       "id": "solar-farm",
       "description": "A large-scale solar farm with rows of solar panels under a clear blue sky.",
-      "imageUrl": "https://images.unsplash.com/photo-1625301840055-7c1b7198cfc0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzb2xhciUyMHBhbmVsc3xlbnwwfHx8fDE3NjY1NzkxMDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "solar panels"
+      "imageUrl": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&q=80",
+      "imageHint": "solar panels aerial"
     },
     {
       "id": "wind-turbine",
-      "description": "A wind turbine standing tall in a green field.",
-      "imageUrl": "https://images.unsplash.com/photo-1565085360602-de694f1d7650?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8d2luZCUyMHR1cmJpbmV8ZW58MHx8fHwxNzY2NTkyNDU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "wind turbine"
+      "description": "Wind turbines standing tall against a clear sky.",
+      "imageUrl": "https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=800&q=80",
+      "imageHint": "wind turbines sunset"
     },
     {
       "id": "methane-capture",
       "description": "An industrial facility for methane capture and conversion.",
-      "imageUrl": "https://images.unsplash.com/photo-1568210405361-24d3e123ff9f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxpbmR1c3RyaWFsJTIwZmFjdG9yeXxlbnwwfHx8fDE3NjY1NTM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "industrial factory"
+      "imageUrl": "https://images.unsplash.com/photo-1568210405361-24d3e123ff9f?w=800&q=80",
+      "imageHint": "industrial factory pipes"
     },
     {
       "id": "user-avatar",
       "description": "A placeholder for a user's avatar.",
-      "imageUrl": "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjY1MDkwNzR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageUrl": "https://images.unsplash.com/photo-1600180758890-6b94519a8ba6?w=400&q=80",
       "imageHint": "person portrait"
     },
     {
       "id": "hydro-power",
       "description": "A large hydroelectric dam.",
-      "imageUrl": "https://images.unsplash.com/photo-1505036952194-547a06413a96?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxoeWRybyUyMGRhbXxlbnwwfHx8fDE3MjM3ODk2MDF8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "hydro dam"
+      "imageUrl": "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80",
+      "imageHint": "hydroelectric dam water"
     },
     {
       "id": "geothermal-plant",
       "description": "A geothermal power plant with steam rising.",
-      "imageUrl": "https://images.unsplash.com/photo-1661755877249-b0fe30accbb1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Z2VvdGhlcm1hbCUyMHBsYW50fGVufDB8fHx8MTc2NjU5MjQ1NXww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "geothermal plant"
+      "imageUrl": "https://images.unsplash.com/photo-1661755877249-b0fe30accbb1?w=800&q=80",
+      "imageHint": "geothermal steam power"
     },
     {
       "id": "wind-turbine-india",
       "description": "Wind turbines in a field in India.",
-      "imageUrl": "https://images.unsplash.com/photo-1622374229648-14282a53e0d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHx3aW5kJTIwdHVyYmluZXMlMjBpbmRpYXxlbnwwfHx8fDE3MjM4MzA3MTV8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "wind turbines"
+      "imageUrl": "https://images.unsplash.com/photo-1565085360602-de694f1d7650?w=800&q=80",
+      "imageHint": "wind turbines blue sky"
     },
     {
       "id": "sundarbans-mangrove",
-      "description": "Satellite view of the Sundarbans mangrove forest.",
-      "imageUrl": "https://images.unsplash.com/photo-1590483804869-635191456a42?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxzYXRlbGxpdGUlMjB2aWV3JTIwZm9yZXN0fGVufDB8fHx8MTcyMzgzMDc5NXww&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "satellite forest"
+      "description": "Aerial view of the Sundarbans mangrove forest.",
+      "imageUrl": "https://images.unsplash.com/photo-1448375240586-882707db888b?w=800&q=80",
+      "imageHint": "mangrove forest aerial"
     },
     {
       "id": "methane-capture-india",
       "description": "Industrial plant for methane capture.",
-      "imageUrl": "https://images.unsplash.com/photo-1670689334896-8fa8291daa27?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxpbmR1c3RyaWFsJTIwcGxhbnR8ZW58MHx8fHwxNzY2NTk3Mzg4fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "industrial plant"
+      "imageUrl": "https://images.unsplash.com/photo-1497435334941-8c899a9bd771?w=800&q=80",
+      "imageHint": "industrial gas plant"
     },
     {
       "id": "solar-farm-india",
       "description": "Solar panels in Rajasthan, India.",
-      "imageUrl": "https://images.unsplash.com/flagged/photo-1566838616631-f2618f74a6a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzb2xhciUyMHBhbmVsc3xlbnwwfHx8fDE3NjY1NzkxMDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "solar panels"
+      "imageUrl": "https://images.unsplash.com/photo-1625301840055-7c1b7198cfc0?w=800&q=80",
+      "imageHint": "solar panels rows india"
     },
     {
       "id": "bhadla-solar-park",
-      "description": "Satellite view of a vast solar park in the desert.",
-      "imageUrl": "https://images.unsplash.com/photo-1599388136367-27a3c35c05b8?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxNXx8c2F0ZWxsaXRlJTIwdmlldyUyMGRlc2VydHxlbnwwfHx8fDE3MjM4MzA5MDF8MA&ixlib=rb-4.0.3&q=80&w=1080",
-      "imageHint": "satellite desert"
+      "description": "Vast solar park with panels stretching to the horizon.",
+      "imageUrl": "https://images.unsplash.com/photo-1509391366360-2e959784a276?w=800&q=80",
+      "imageHint": "solar park aerial large"
     },
     {
       "id": "usa-dac",
-      "description": "Direct Air Capture facility in the USA.",
-      "imageUrl": "https://images.unsplash.com/photo-1661095123435-7976bd72181f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxpbmR1c3RyaWFsJTIwZmFuc3xlbnwwfHx8fDE3NjY2MDAwMDN8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "industrial fans"
+      "description": "Direct Air Capture facility with large industrial fans.",
+      "imageUrl": "https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80",
+      "imageHint": "industrial plant machinery"
     },
     {
       "id": "kenya-geothermal",
       "description": "Geothermal plant in Kenya's Great Rift Valley.",
-      "imageUrl": "https://images.unsplash.com/photo-1695306635529-9ea39ba60fae?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnZW90aGVybWFsJTIwcGxhbnR8ZW58MHx8fHwxNzY2NTkyNDU1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "geothermal plant"
+      "imageUrl": "https://images.unsplash.com/photo-1661755877249-b0fe30accbb1?w=800&q=80",
+      "imageHint": "geothermal energy steam"
     }
   ]
 }

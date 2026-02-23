@@ -9,8 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Landmark, Loader2 } from 'lucide-react';
-import { useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, query, where, doc, updateDoc, increment } from 'firebase/firestore';
+import { useFirestore, useCollection, useMemoFirebase, useUser } from '@/firebase';
+import { collection, query, where, doc, updateDoc, increment, addDoc } from 'firebase/firestore';
 import type { Project } from '@/lib/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -18,6 +18,7 @@ import { FirestorePermissionError } from '@/firebase/errors';
 export default function AdminCreditsPage() {
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { user } = useUser();
 
   const [selectedProject, setSelectedProject] = useState<string | undefined>(undefined);
   const [quantity, setQuantity] = useState('');
@@ -63,6 +64,21 @@ export default function AdminCreditsPage() {
             title: 'Credits Issued Successfully',
             description: `${Number(quantity).toLocaleString()} credits have been issued to ${project.name}.`,
         });
+
+        // Notify the developer
+        try {
+          if (project.developerId) {
+            await addDoc(collection(firestore, `users/${project.developerId}/notifications`), {
+              title: '💰 Credits Issued to Your Project',
+              message: `${Number(quantity).toLocaleString()} tCO₂e have been officially issued to "${project.name}" and are now available on the marketplace.`,
+              read: false,
+              createdAt: new Date().toISOString(),
+              link: '/developer/projects',
+            });
+          }
+        } catch (notifErr) {
+          console.error('Notification write failed (non-critical):', notifErr);
+        }
 
         // Reset form
         setSelectedProject(undefined);

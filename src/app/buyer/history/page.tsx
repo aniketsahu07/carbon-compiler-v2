@@ -3,7 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download, FileText, FileSpreadsheet } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,8 +13,6 @@ export default function BuyerHistoryPage() {
     const { claimHistory, isClaimHistoryLoading } = useCart();
 
     const handleDownload = (certificateId: string) => {
-        // In a real app, this would trigger a file download.
-        // Here, we'll just simulate it with a toast and a log.
         console.log(`Simulating download for certificate: ${certificateId}`);
         toast({
             title: 'Certificate Download Simulated',
@@ -22,12 +20,79 @@ export default function BuyerHistoryPage() {
         })
     }
 
+    const exportCSV = () => {
+        if (claimHistory.length === 0) {
+            toast({ variant: 'destructive', title: 'No data', description: 'No claim history to export.' });
+            return;
+        }
+        const headers = ['Project Name', 'Amount (tCO2e)', 'Claim Date', 'Certificate ID'];
+        const rows = claimHistory.map(item => [
+            `"${item.projectName}"`,
+            item.tons,
+            new Date(item.claimDate).toLocaleDateString(),
+            item.certificateId,
+        ]);
+        const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `claim-history-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast({ title: 'CSV Exported', description: 'Your claim history has been downloaded as CSV.' });
+    };
+
+    const exportPDF = () => {
+        if (claimHistory.length === 0) {
+            toast({ variant: 'destructive', title: 'No data', description: 'No claim history to export.' });
+            return;
+        }
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+        const rows = claimHistory.map(item => `
+            <tr>
+                <td style="padding:8px;border:1px solid #ddd;">${item.projectName}</td>
+                <td style="padding:8px;border:1px solid #ddd;">${item.tons.toLocaleString()}</td>
+                <td style="padding:8px;border:1px solid #ddd;">${new Date(item.claimDate).toLocaleDateString()}</td>
+                <td style="padding:8px;border:1px solid #ddd;">${item.certificateId}</td>
+            </tr>`).join('');
+        printWindow.document.write(`
+            <html><head><title>Claim History</title>
+            <style>body{font-family:Arial,sans-serif;padding:24px;} table{width:100%;border-collapse:collapse;} th{background:#166534;color:white;padding:10px;text-align:left;border:1px solid #ddd;} h1{color:#166534;}</style>
+            </head><body>
+            <h1>Carbon Credit Claim History</h1>
+            <p>Generated on: ${new Date().toLocaleDateString()}</p>
+            <table><thead><tr>
+                <th>Project Name</th><th>Amount (tCO₂e)</th><th>Claim Date</th><th>Certificate ID</th>
+            </tr></thead><tbody>${rows}</tbody></table>
+            </body></html>`);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => { printWindow.print(); printWindow.close(); }, 500);
+        toast({ title: 'PDF Export', description: 'Print dialog opened to save as PDF.' });
+    };
+
     return (
         <div className="container mx-auto">
             <Card>
-                <CardHeader>
-                    <CardTitle>Claim History</CardTitle>
-                    <CardDescription>Your history of retired carbon credits and downloadable certificates.</CardDescription>
+                <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <CardTitle>Claim History</CardTitle>
+                        <CardDescription>Your history of retired carbon credits and downloadable certificates.</CardDescription>
+                    </div>
+                    <div className="flex gap-2 shrink-0">
+                        <Button variant="outline" size="sm" onClick={exportCSV} disabled={isClaimHistoryLoading || claimHistory.length === 0}>
+                            <FileSpreadsheet className="mr-2 h-4 w-4" />
+                            Export CSV
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={exportPDF} disabled={isClaimHistoryLoading || claimHistory.length === 0}>
+                            <FileText className="mr-2 h-4 w-4" />
+                            Export PDF
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent>
                      <Table>

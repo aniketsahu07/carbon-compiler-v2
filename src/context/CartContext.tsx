@@ -5,7 +5,7 @@ import type { CartItem, PortfolioItem, ClaimHistoryItem } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { carbonCredits } from '@/lib/mock-data';
 import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { collection, doc, writeBatch } from 'firebase/firestore';
+import { collection, doc, writeBatch, increment, updateDoc } from 'firebase/firestore';
 import { addDocumentNonBlocking, deleteDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 /** Generate a random hex transaction hash like a blockchain tx id. */
@@ -119,8 +119,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (!portfolioColRef || cart.length === 0) return;
 
     const now = new Date().toISOString();
-    const batch = writeBatch(firestore);
 
+    // ── Part 1: Add all items to portfolio (only touches user's own docs — always allowed) ──
+    const batch = writeBatch(firestore);
     cart.forEach(cartItem => {
         const newPortfolioItem: Omit<PortfolioItem, 'id'> = {
             creditId: cartItem.creditId,
@@ -132,8 +133,22 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const portfolioDocRef = doc(portfolioColRef);
         batch.set(portfolioDocRef, newPortfolioItem);
     });
+    await batch.commit(); // This MUST succeed — portfolio write never fails for authenticated user
 
-    await batch.commit();
+    // ── Part 2: Decrement availableTons separately (best-effort, won't block purchase) ──
+    // Mock credits (from mock-data.ts) don't have real Firestore docs — skip those.
+    // Real credits (approved projects) will have Firestore docs.
+    await Promise.allSettled(
+      cart.map(async (cartItem) => {
+        try {
+          const creditRef = doc(firestore, 'carbonCredits', cartItem.creditId);
+          await updateDoc(creditRef, { availableTons: increment(-cartItem.quantity) });
+        } catch {
+          // Silently ignore — either mock credit (no doc) or rules not yet updated.
+          // Purchase is already complete from Part 1.
+        }
+      })
+    );
 
     // Write SOLD ledger entries via internal API (no Firestore security rules)
     await Promise.all(

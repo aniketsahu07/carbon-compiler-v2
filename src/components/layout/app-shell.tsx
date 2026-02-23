@@ -1,6 +1,4 @@
-
-
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import Link from "next/link";
@@ -12,7 +10,6 @@ import {
   ShoppingCart,
   Mountain,
   FileText,
-  Users,
   CircleUser,
   Landmark,
   ShieldCheck,
@@ -21,77 +18,230 @@ import {
   Sparkles,
   Bot,
   Scale,
-  BarChart,
-  CreditCard,
-  BookCheck,
-  Globe,
-  ThumbsUp,
-  ThumbsDown,
+  Calculator,
+  ArrowLeft,
+  Sun,
+  Moon,
+  ChevronLeft,
+  ChevronRight,
+  Activity,
   LogIn,
 } from "lucide-react";
-
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { BrandLogo } from "@/components/icons";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useUser } from "@/firebase";
 import { useCart } from "@/context/CartContext";
-import { Badge } from "../ui/badge";
+import { Badge } from "@/components/ui/badge";
 import type { UserRole } from "@/lib/types";
-import { SUPER_ADMIN_UID } from "@/lib/config";
 import { useToast } from "@/hooks/use-toast";
-
 
 const publicNavItems = [
   { href: "/", label: "Home", icon: Mountain },
   { href: "/marketplace", label: "Marketplace", icon: ShoppingCart },
   { href: "/ledger", label: "Public Ledger", icon: Book },
+  { href: "/calculator", label: "Carbon Calc", icon: Calculator },
 ];
 
 const protectedRoutes = [
-  "/profile",
-  "/checkout",
-  "/admin/dashboard",
-  "/admin/projects",
-  "/admin/credits",
-  "/admin/ai-validation",
-  "/developer/dashboard",
-  "/developer/projects",
-  "/buyer/dashboard",
-  "/buyer/history",
-  "/ai-assistant",
-  "/ndc",
+  "/profile", "/checkout",
+  "/admin/dashboard", "/admin/projects", "/admin/credits", "/admin/ai-validation",
+  "/developer/dashboard", "/developer/projects", "/developer/edit-project",
+  "/buyer/dashboard", "/buyer/history",
+  "/ai-assistant", "/ndc",
 ];
 
 const adminNavItems = [
-    { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/admin/projects", label: "Approve Projects", icon: ShieldCheck },
-    { href: "/admin/credits", label: "Issue Credits", icon: Landmark },
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/projects", label: "Approve Projects", icon: ShieldCheck },
+  { href: "/admin/credits", label: "Issue Credits", icon: Landmark },
 ];
 
 const developerNavItems = [
-    { href: "/developer/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/developer/projects", label: "My Projects", icon: FileText },
+  { href: "/developer/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/developer/projects", label: "My Projects", icon: FileText },
 ];
 
 const buyerNavItems = [
-    { href: "/buyer/dashboard", label: "My Dashboard", icon: Wallet },
-    { href: "/buyer/history", label: "Claim History", icon: History },
+  { href: "/buyer/dashboard", label: "My Dashboard", icon: Wallet },
+  { href: "/buyer/history", label: "Claim History", icon: History },
 ];
 
 const aiNavItems = [
-    { href: "/ai-assistant", label: "AI Assistant", icon: Bot },
-    { href: "/admin/ai-validation", label: "AI Validation", icon: Sparkles },
-]
+  { href: "/ai-assistant", label: "AI Assistant", icon: Bot },
+  { href: "/admin/ai-validation", label: "AI Validation", icon: Sparkles },
+];
 
 const complianceNavItems = [
-    { href: "/ndc", label: "NDC Tracking", icon: Scale },
-]
+  { href: "/ndc", label: "NDC Tracking", icon: Scale },
+];
+
+function LiveIndicator() {
+  return (
+    <span className="flex items-center gap-1.5 text-[11px] font-medium text-emerald-400">
+      <span className="live-dot" />
+      Live
+    </span>
+  );
+}
+
+function NavSection({
+  title,
+  items,
+  collapsed,
+  pathname,
+  onNavClick,
+}: {
+  title?: string;
+  items: typeof publicNavItems;
+  collapsed: boolean;
+  pathname: string;
+  onNavClick?: () => void;
+}) {
+  return (
+    <div className="mb-0.5">
+      {title && !collapsed && (
+        <p className="px-3 pt-3 pb-1 text-[10px] font-semibold tracking-widest uppercase text-white/25 select-none">
+          {title}
+        </p>
+      )}
+      <ul className="space-y-0.5">
+        {items.map((item) => {
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+          return (
+            <li key={item.href}>
+              <Link
+                href={item.href}
+                onClick={onNavClick}
+                title={collapsed ? item.label : undefined}
+                className={cn(
+                  "group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
+                  isActive
+                    ? "bg-white/10 text-white"
+                    : "text-white/50 hover:bg-white/[0.06] hover:text-white/85"
+                )}
+              >
+                <item.icon
+                  className={cn(
+                    "h-[17px] w-[17px] shrink-0 transition-colors",
+                    isActive ? "text-emerald-400" : "text-white/35 group-hover:text-emerald-400"
+                  )}
+                />
+                {!collapsed && <span className="truncate leading-none">{item.label}</span>}
+                {isActive && !collapsed && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-emerald-400 shrink-0" />
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}
+
+function SidebarDivider({ collapsed }: { collapsed: boolean }) {
+  return <div className={cn("my-1.5 border-t border-white/8", collapsed && "mx-2")} />;
+}
+
+function SidebarContent({
+  collapsed,
+  pathname,
+  user,
+  onNavClick,
+  showSection,
+}: {
+  collapsed: boolean;
+  pathname: string;
+  user: ReturnType<typeof useUser>["user"];
+  onNavClick?: () => void;
+  showSection: (s: string) => boolean;
+}) {
+  return (
+    <div className="flex flex-col h-full">
+      <div
+        className={cn(
+          "flex h-14 shrink-0 items-center border-b border-white/8",
+          collapsed ? "justify-center px-3" : "px-4 gap-3"
+        )}
+      >
+        <Link href="/" className="flex items-center gap-2.5" onClick={onNavClick}>
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10 ring-1 ring-emerald-500/25">
+            <BrandLogo className="h-5 w-5 text-emerald-400" />
+          </div>
+          {!collapsed && (
+            <div className="flex flex-col leading-none">
+              <span className="text-sm font-bold text-white tracking-tight">BCX</span>
+              <span className="text-[9px] text-white/35 tracking-widest uppercase">Carbon Exchange</span>
+            </div>
+          )}
+        </Link>
+        {!collapsed && <LiveIndicator />}
+      </div>
+
+      <nav className="flex-1 overflow-y-auto p-2.5">
+        {showSection("Public") && (
+          <NavSection title="Public" items={publicNavItems} collapsed={collapsed} pathname={pathname} onNavClick={onNavClick} />
+        )}
+        {showSection("Buyer / Corporate") && (
+          <>
+            <SidebarDivider collapsed={collapsed} />
+            <NavSection title="Buyer" items={buyerNavItems} collapsed={collapsed} pathname={pathname} onNavClick={onNavClick} />
+          </>
+        )}
+        {showSection("Project Developer") && (
+          <>
+            <SidebarDivider collapsed={collapsed} />
+            <NavSection title="Developer" items={developerNavItems} collapsed={collapsed} pathname={pathname} onNavClick={onNavClick} />
+          </>
+        )}
+        {showSection("Admin / Registry") && (
+          <>
+            <SidebarDivider collapsed={collapsed} />
+            <NavSection title="Admin" items={adminNavItems} collapsed={collapsed} pathname={pathname} onNavClick={onNavClick} />
+          </>
+        )}
+        {showSection("AI Tools") && (
+          <>
+            <SidebarDivider collapsed={collapsed} />
+            <NavSection title="AI Tools" items={aiNavItems} collapsed={collapsed} pathname={pathname} onNavClick={onNavClick} />
+          </>
+        )}
+        {showSection("Compliance") && (
+          <>
+            <SidebarDivider collapsed={collapsed} />
+            <NavSection title="Compliance" items={complianceNavItems} collapsed={collapsed} pathname={pathname} onNavClick={onNavClick} />
+          </>
+        )}
+      </nav>
+
+      {user && (
+        <div className="shrink-0 border-t border-white/8 p-2.5">
+          <Link
+            href="/profile"
+            onClick={onNavClick}
+            title={collapsed ? "Profile" : undefined}
+            className={cn(
+              "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all",
+              pathname === "/profile"
+                ? "bg-white/10 text-white"
+                : "text-white/50 hover:bg-white/[0.06] hover:text-white/85"
+            )}
+          >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-500/20 ring-1 ring-emerald-500/30">
+              <CircleUser className="h-4 w-4 text-emerald-400" />
+            </div>
+            {!collapsed && (
+              <span className="truncate text-xs font-medium">{user.email?.split("@")[0] ?? "Profile"}</span>
+            )}
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = React.useState(true);
@@ -102,292 +252,201 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const { cart, setIsCartOpen } = useCart();
   const [userRole, setUserRole] = React.useState<UserRole | null>(null);
   const { toast } = useToast();
-
+  const { theme, setTheme } = useTheme();
 
   React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedRole = sessionStorage.getItem('userRole') as UserRole;
-      if (storedRole) {
-        setUserRole(storedRole);
-      }
+    if (typeof window !== "undefined") {
+      const storedRole = sessionStorage.getItem("userRole") as UserRole;
+      if (storedRole) setUserRole(storedRole);
     }
   }, [user]);
 
-
   React.useEffect(() => {
     if (isUserLoading) return;
-
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
-    const isAdminRoute = pathname.startsWith('/admin');
-
+    const isProtectedRoute = protectedRoutes.some((r) => pathname.startsWith(r));
     if (!user && isProtectedRoute) {
-      if(typeof window !== 'undefined') {
-        sessionStorage.removeItem('userRole');
-      }
+      if (typeof window !== "undefined") sessionStorage.removeItem("userRole");
       setUserRole(null);
-      router.push('/login');
+      router.push("/login");
       return;
     }
-
-    if (user && isAdminRoute && user.uid !== SUPER_ADMIN_UID) {
-        toast({
-            variant: "destructive",
-            title: "Access Denied",
-            description: "You do not have permission to access the admin panel.",
-        });
-        router.push('/');
+    const storedRole = typeof window !== "undefined" ? sessionStorage.getItem("userRole") : null;
+    if (user && pathname.startsWith("/admin") && storedRole !== "ADMIN") {
+      toast({
+        variant: "destructive",
+        title: "Access Denied",
+        description: "You do not have permission to access the admin panel.",
+      });
+      router.push("/");
     }
-
   }, [user, isUserLoading, pathname, router, toast]);
 
-  const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
-
-  const renderNavLinks = (items: typeof publicNavItems, title?: string) => {
-    const isVisible = () => {
-      if (!user) return title === "Public";
-
-      if (userRole === 'ADMIN') {
-        // Super Admin Check
-        if (user.uid !== SUPER_ADMIN_UID) return false;
-        return ["Public", "Admin / Registry", "AI Tools", "Compliance"].includes(title || "");
-      }
-      if (userRole === 'BUYER') {
-        return ["Public", "Buyer / Corporate", "AI Tools", "Compliance"].includes(title || "");
-      }
-      if (userRole === 'DEVELOPER') {
-        return ["Public", "Project Developer", "Compliance"].includes(title || "");
-      }
-      return title === "Public";
-    };
-
-    if (!isVisible()) return null;
-
-    return (
-        <>
-            {title && isSidebarOpen && <h4 className="px-3 py-2 text-xs font-semibold text-muted-foreground tracking-wider">{title}</h4>}
-            {items.map((item) => (
-                <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => isMobileSheetOpen && setIsMobileSheetOpen(false)}
-                className={cn(
-                    "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary hover:bg-muted",
-                    pathname === item.href && "bg-muted text-primary font-semibold"
-                )}
-                >
-                <item.icon className="h-5 w-5" />
-                <span
-                    className={cn(
-                    "transition-opacity duration-200",
-                    !isSidebarOpen && "opacity-0 w-0"
-                    )}
-                >
-                    {item.label}
-                </span>
-                </Link>
-            ))}
-            <div className="my-4 border-t border-border -mx-4"></div>
-        </>
-    );
+  const showSection = (title: string) => {
+    if (!user) return title === "Public";
+    if (userRole === "ADMIN") return ["Public", "Admin / Registry", "AI Tools", "Compliance"].includes(title);
+    if (userRole === "BUYER") return ["Public", "Buyer / Corporate", "AI Tools", "Compliance"].includes(title);
+    if (userRole === "DEVELOPER") return ["Public", "Project Developer", "Compliance"].includes(title);
+    return title === "Public";
   };
 
-  const mobileRenderNavLinks = (items: typeof publicNavItems) => (
-      items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          onClick={() => setIsMobileSheetOpen(false)}
-          className={cn(
-            "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-            pathname === item.href && "bg-muted text-primary"
-          )}
-        >
-          <item.icon className="h-5 w-5" />
-          {item.label}
-        </Link>
-      ))
-  )
-
-  const getMobileNavSections = () => {
-    if (userRole === 'ADMIN' && user?.uid === SUPER_ADMIN_UID) {
-        return (
-            <>
-                <AccordionItem value="public"><AccordionTrigger className="text-sm font-semibold">Public</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(publicNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="admin"><AccordionTrigger className="text-sm font-semibold">Admin / Registry</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(adminNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="ai-tools"><AccordionTrigger className="text-sm font-semibold">AI Tools</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(aiNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="compliance"><AccordionTrigger className="text-sm font-semibold">Compliance</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(complianceNavItems)}</AccordionContent></AccordionItem>
-            </>
-        )
-    }
-    if (userRole === 'BUYER') {
-        return (
-            <>
-                <AccordionItem value="public"><AccordionTrigger className="text-sm font-semibold">Public</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(publicNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="buyer"><AccordionTrigger className="text-sm font-semibold">Buyer / Corporate</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(buyerNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="ai-tools"><AccordionTrigger className="text-sm font-semibold">AI Tools</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(aiNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="compliance"><AccordionTrigger className="text-sm font-semibold">Compliance</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(complianceNavItems)}</AccordionContent></AccordionItem>
-            </>
-        )
-    }
-    if (userRole === 'DEVELOPER') {
-        return (
-            <>
-                <AccordionItem value="public"><AccordionTrigger className="text-sm font-semibold">Public</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(publicNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="developer"><AccordionTrigger className="text-sm font-semibold">Project Developer</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(developerNavItems)}</AccordionContent></AccordionItem>
-                <AccordionItem value="compliance"><AccordionTrigger className="text-sm font-semibold">Compliance</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(complianceNavItems)}</AccordionContent></AccordionItem>
-            </>
-        )
-    }
-    // Default for unauthenticated users
-    return <AccordionItem value="public"><AccordionTrigger className="text-sm font-semibold">Public</AccordionTrigger><AccordionContent className="pl-2 space-y-1">{mobileRenderNavLinks(publicNavItems)}</AccordionContent></AccordionItem>
-  }
-
+  const topLevelPaths = [
+    "/", "/marketplace", "/ledger", "/calculator",
+    "/admin/dashboard", "/admin/projects", "/admin/credits",
+    "/developer/dashboard", "/developer/projects",
+    "/buyer/dashboard", "/buyer/history",
+    "/ai-assistant", "/ndc", "/login", "/signup",
+  ];
+  const showBackButton = !topLevelPaths.includes(pathname);
 
   const allNavItems = [...publicNavItems, ...adminNavItems, ...developerNavItems, ...buyerNavItems, ...aiNavItems, ...complianceNavItems];
-  const currentPage = allNavItems.find(item => pathname.startsWith(item.href) && (item.href === '/' ? pathname === '/' : true)) || 
-                      (pathname.startsWith('/login') ? { label: 'Login' } : null) ||
-                      (pathname.startsWith('/signup') ? { label: 'Sign Up' } : null) ||
-                      (pathname.startsWith('/profile') ? { label: 'Profile' } : null) ||
-                      (pathname.startsWith('/checkout') ? { label: 'Checkout' } : null) ||
-                      (pathname.startsWith('/ndc/') ? { label: 'NDC Project Dashboard' } : null) ||
-                      (pathname.startsWith('/admin/review/') ? { label: 'Review Project' } : null) ||
-                      { label: 'Home' };
+  const currentPage =
+    allNavItems.find((item) => item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)) ||
+    (pathname.startsWith("/login") ? { label: "Login" } : null) ||
+    (pathname.startsWith("/signup") ? { label: "Sign Up" } : null) ||
+    (pathname.startsWith("/profile") ? { label: "Profile" } : null) ||
+    (pathname.startsWith("/checkout") ? { label: "Checkout" } : null) ||
+    (pathname.startsWith("/ndc/") ? { label: "NDC Project" } : null) ||
+    (pathname.startsWith("/admin/review/") ? { label: "Review Project" } : null) ||
+    { label: "Home" };
 
   if (isUserLoading) {
-    return <div className="flex h-screen w-screen items-center justify-center">Loading...</div>
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <BrandLogo className="h-10 w-10 text-primary animate-pulse" />
+          <p className="text-sm text-muted-foreground tracking-wide">Loading BCX…</p>
+        </div>
+      </div>
+    );
   }
 
-  // Show only children for login/signup pages to avoid nested layouts
-  if (pathname === '/login' || pathname === '/signup') {
+  if (pathname === "/login" || pathname === "/signup") {
     return <>{children}</>;
   }
 
+  const sidebarBg = "hsl(222, 47%, 8%)";
+  const sidebarBorder = "hsl(222, 47%, 14%)";
 
   return (
-    <div className="flex min-h-screen w-full bg-secondary/50">
-      {/* Desktop Sidebar */}
+    <div className="flex min-h-screen w-full bg-background">
       <aside
         className={cn(
-          "hidden md:flex flex-col border-r bg-background transition-all duration-300 ease-in-out",
-          isSidebarOpen ? "w-64" : "w-20"
+          "relative hidden md:flex flex-col shrink-0 transition-all duration-300 ease-in-out border-r",
+          isSidebarOpen ? "w-60" : "w-[68px]"
         )}
+        style={{ backgroundColor: sidebarBg, borderColor: sidebarBorder }}
       >
-        <div className="flex h-16 items-center border-b px-6">
-          <Link href="/" className="flex items-center gap-2 font-semibold">
-            <BrandLogo className="h-6 w-6 text-primary" />
-            <span
-              className={cn(
-                "font-bold transition-opacity duration-200",
-                !isSidebarOpen && "opacity-0 w-0"
-              )}
-            >
-              BCX
-            </span>
-          </Link>
-        </div>
-        <nav className="flex-1 space-y-2 p-4 overflow-y-auto">
-          {renderNavLinks(publicNavItems, "Public")}
-          {renderNavLinks(buyerNavItems, "Buyer / Corporate")}
-          {renderNavLinks(developerNavItems, "Project Developer")}
-          {renderNavLinks(adminNavItems, "Admin / Registry")}
-          {renderNavLinks(aiNavItems, "AI Tools")}
-          {renderNavLinks(complianceNavItems, "Compliance")}
-        </nav>
+        <SidebarContent
+          collapsed={!isSidebarOpen}
+          pathname={pathname}
+          user={user}
+          showSection={showSection}
+        />
+        <button
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className={cn(
+            "absolute -right-2.5 top-[52px] z-30 flex h-5 w-5 items-center justify-center rounded-full",
+            "bg-[hsl(222,47%,14%)] border border-white/10 text-white/40",
+            "hover:text-emerald-400 hover:border-emerald-500/40 transition-all duration-200 shadow-lg"
+          )}
+          title={isSidebarOpen ? "Collapse sidebar" : "Expand sidebar"}
+        >
+          {isSidebarOpen ? (
+            <ChevronLeft className="h-3 w-3" />
+          ) : (
+            <ChevronRight className="h-3 w-3" />
+          )}
+        </button>
       </aside>
 
-      <div className="flex flex-1 flex-col">
-        <header className="flex h-16 items-center gap-4 border-b bg-background px-4 md:px-6">
-          {/* Desktop Toggle */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            className="hidden md:flex"
-          >
-            <Menu className="h-5 w-5" />
-            <span className="sr-only">Toggle sidebar</span>
-          </Button>
-
-          {/* Mobile Toggle */}
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+        <header className="sticky top-0 z-20 flex h-14 shrink-0 items-center gap-3 border-b border-border bg-background/95 backdrop-blur-sm px-4 md:px-5">
           <Sheet open={isMobileSheetOpen} onOpenChange={setIsMobileSheetOpen}>
             <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+                <Menu className="h-4 w-4" />
                 <span className="sr-only">Toggle menu</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="flex flex-col p-0 w-72">
-                <div className="flex h-16 items-center border-b px-6">
-                    <Link href="/" className="flex items-center gap-2 font-semibold">
-                        <BrandLogo className="h-6 w-6 text-primary" />
-                        <span className="font-bold">Bharat Carbon Exchange</span>
-                    </Link>
-                </div>
-                 <nav className="flex-1 space-y-1 p-4 overflow-y-auto">
-                    <Accordion type="multiple" defaultValue={['public']} className="w-full">
-                        {getMobileNavSections()}
-                    </Accordion>
-                </nav>
-                 <div className="mt-auto p-4 border-t">
-                    <Link
-                      href="/profile"
-                      onClick={() => setIsMobileSheetOpen(false)}
-                      className={cn(
-                          "flex items-center gap-3 rounded-lg px-3 py-2 text-muted-foreground transition-all hover:text-primary",
-                          pathname === "/profile" && "bg-muted text-primary"
-                      )}
-                    >
-                      <CircleUser className="h-5 w-5" />
-                       Profile
-                    </Link>
-                </div>
+            <SheetContent
+              side="left"
+              className="p-0 w-72 border-r"
+              style={{ backgroundColor: sidebarBg, borderColor: sidebarBorder }}
+            >
+              <SidebarContent
+                collapsed={false}
+                pathname={pathname}
+                user={user}
+                showSection={showSection}
+                onNavClick={() => setIsMobileSheetOpen(false)}
+              />
             </SheetContent>
           </Sheet>
-          
-          <div className="flex-1">
-            <h1 className="text-lg font-semibold md:text-xl">
-              {currentPage?.label}
-            </h1>
+
+          {showBackButton && (
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => router.back()}>
+              <ArrowLeft className="h-4 w-4" />
+              <span className="sr-only">Go back</span>
+            </Button>
+          )}
+
+          <div className="flex flex-1 items-center gap-2 min-w-0">
+            <h1 className="text-sm font-semibold text-foreground truncate">{currentPage?.label}</h1>
+            <span className="hidden md:flex items-center gap-1.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800/50 rounded-full px-2 py-0.5 tracking-wide">
+              <Activity className="h-2.5 w-2.5" />
+              LIVE
+            </span>
           </div>
-          <div className="flex items-center gap-4">
-             {user ? (
-                <>
-                 <Button
+
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            >
+              <Sun className="h-4 w-4 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+              <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+              <span className="sr-only">Toggle theme</span>
+            </Button>
+
+            {user ? (
+              <>
+                <Button
                   variant="ghost"
                   size="icon"
-                  className="relative"
+                  className="relative h-8 w-8"
                   onClick={() => setIsCartOpen(true)}
                 >
-                  <ShoppingCart className="h-5 w-5" />
+                  <ShoppingCart className="h-4 w-4" />
                   {cart.length > 0 && (
                     <Badge
                       variant="destructive"
-                      className="absolute -top-2 -right-2 h-5 w-5 justify-center rounded-full p-0"
+                      className="absolute -top-1 -right-1 h-4 w-4 justify-center rounded-full p-0 text-[10px] leading-none"
                     >
                       {cart.reduce((acc, item) => acc + item.quantity, 0)}
                     </Badge>
                   )}
                   <span className="sr-only">Open Cart</span>
                 </Button>
-                <Link href="/profile" passHref>
-                    <Button variant="ghost" size="icon">
-                        <CircleUser className="h-5 w-5" />
-                        <span className="sr-only">Profile</span>
-                    </Button>
+                <Link href="/profile">
+                  <button className="ml-1 flex h-8 w-8 items-center justify-center rounded-full bg-emerald-100 dark:bg-emerald-900/30 ring-2 ring-emerald-200 dark:ring-emerald-800/60 hover:ring-emerald-400 transition-all">
+                    <CircleUser className="h-4 w-4 text-emerald-700 dark:text-emerald-400" />
+                  </button>
                 </Link>
-                </>
-             ) : (
-                <Button asChild>
-                    <Link href="/login">
-                        <LogIn className="mr-2 h-4 w-4" />
-                        Login
-                    </Link>
-                </Button>
-             )}
+              </>
+            ) : (
+              <Button asChild size="sm" className="ml-1 h-8 text-xs gap-1.5">
+                <Link href="/login">
+                  <LogIn className="h-3.5 w-3.5" />
+                  Sign In
+                </Link>
+              </Button>
+            )}
           </div>
         </header>
 
-        <main className="flex-1 p-4 md:p-6 lg:p-8 bg-secondary/30">
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8 animate-fade-in">
           {children}
         </main>
       </div>

@@ -78,7 +78,7 @@ export default function ReviewProjectPage() {
       hint: 'geothermal steam power plant',
     },
     'Hydroelectric': {
-      url: 'https://images.unsplash.com/photo-1505036952194-547a06413a96?w=800&q=80',
+      url: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=800&q=80',
       hint: 'hydroelectric dam water power',
     },
   };

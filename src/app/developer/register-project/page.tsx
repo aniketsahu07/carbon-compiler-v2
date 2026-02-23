@@ -7,6 +7,8 @@ import { z } from 'zod';
 import { useRouter } from 'next/navigation';
 import { useUser, useFirestore, addDocumentNonBlocking } from '@/firebase';
 import { collection } from 'firebase/firestore';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { getApp } from 'firebase/app';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -46,6 +48,7 @@ const projectSchema = z.object({
   projectWebsite: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
   vintageYear: z.coerce.number().int().min(2020, 'Vintage year must be 2020 or later.'),
   availableTons: z.coerce.number().int().positive('Please enter a valid number of tons.'),
+  pricePerTon: z.coerce.number().positive('Price must be a positive number.').min(1, 'Minimum price is ₹1 per ton.'),
   sdgImpacts: z.array(z.string()).optional(),
 });
 
@@ -71,6 +74,7 @@ export default function RegisterProjectPage() {
       projectWebsite: '',
       vintageYear: new Date().getFullYear(),
       availableTons: 10000,
+      pricePerTon: 500,
       sdgImpacts: [],
     },
   });
@@ -88,6 +92,7 @@ export default function RegisterProjectPage() {
     setIsSubmitting(true);
 
     try {
+        const storage = getStorage(getApp());
         const projectsColRef = collection(firestore, 'projects');
         const projectData: any = {
             ...values,
@@ -95,19 +100,26 @@ export default function RegisterProjectPage() {
             status: 'Under Validation',
         };
         
-        // Manually handle file data (simulation)
+        // Upload documents to Firebase Storage
         if (documents && documents.length > 0) {
-            projectData.auditDocuments = Array.from(documents).map(file => ({
-                name: file.name,
-                url: `https://firebasestorage.googleapis.com/v0/b/your-bucket/o/documents%2F${file.name}?alt=media`,
-            }));
+            const uploadedDocs = await Promise.all(
+                Array.from(documents).map(async (file) => {
+                    const fileRef = storageRef(storage, `projects/${user.uid}/${Date.now()}_${file.name}`);
+                    await uploadBytes(fileRef, file);
+                    const url = await getDownloadURL(fileRef);
+                    return { name: file.name, url };
+                })
+            );
+            projectData.auditDocuments = uploadedDocs;
         } else {
             projectData.auditDocuments = [];
         }
 
-        // In a real app, you'd also upload the projectPhoto and save its URL
+        // Upload project photo to Firebase Storage
         if (projectPhoto) {
-             projectData.photoUrl = `https://firebasestorage.googleapis.com/v0/b/your-bucket/o/photos%2F${projectPhoto.name}?alt=media`;
+            const photoRef = storageRef(storage, `projects/${user.uid}/photo_${Date.now()}_${projectPhoto.name}`);
+            await uploadBytes(photoRef, projectPhoto);
+            projectData.photoUrl = await getDownloadURL(photoRef);
         }
 
 
@@ -267,6 +279,23 @@ export default function RegisterProjectPage() {
                 />
               </div>
 
+              <FormField
+                control={form.control}
+                name="pricePerTon"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Price per Ton (₹ / tCO₂e)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="e.g., 500" {...field} value={field.value || ""} disabled={isLoading} />
+                    </FormControl>
+                    <FormDescription>
+                      Set your desired listing price per tonne of CO₂ equivalent. This will be used as the marketplace price upon approval.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
                <FormField
                 control={form.control}
                 name="sdgImpacts"
@@ -328,7 +357,7 @@ export default function RegisterProjectPage() {
                   />
                 </FormControl>
                 <FormDescription>
-                  A high-quality photo that will be used as the main image in the marketplace.
+                  A high-quality photo for the marketplace. Will be uploaded to secure storage.
                 </FormDescription>
               </FormItem>
               
@@ -344,7 +373,7 @@ export default function RegisterProjectPage() {
                   />
                 </FormControl>
                 <FormDescription>
-                  Upload relevant documents (e.g., project design, validation reports, PDFs).
+                  Upload PDFs, validation reports, etc. Files will be securely stored and shown to the admin for review.
                 </FormDescription>
               </FormItem>
 

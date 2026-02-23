@@ -39,11 +39,21 @@ export type Project = {
     projectWebsite?: string;
     vintageYear: number;
     availableTons: number;
+    pricePerTon?: number;
     sdgImpacts?: string[];
     developerId: string;
     status: 'Under Validation' | 'Verified' | 'Rejected';
     auditDocuments?: { name: string; url: string }[];
 }
+
+export type AppNotification = {
+  id?: string;
+  title: string;
+  message: string;
+  read: boolean;
+  createdAt: string;
+  link?: string;
+};
 
 export type Transaction = {
   txHash: string;

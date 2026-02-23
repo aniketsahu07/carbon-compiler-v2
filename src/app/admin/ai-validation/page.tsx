@@ -9,6 +9,12 @@ import type { ValidationState } from '@/lib/types';
 import { Loader2, AlertTriangle, CheckCircle, Percent, ShieldCheck } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 
+const MIN_WORDS = 30;
+
+function getWordCount(text: string) {
+  return text.trim().split(/\s+/).filter(Boolean).length;
+}
+
 export default function AIValidationPage() {
   const [projectDetails, setProjectDetails] = useState('');
   const [validationState, setValidationState] = useState<ValidationState>({
@@ -17,8 +23,11 @@ export default function AIValidationPage() {
     error: undefined,
   });
 
+  const wordCount = getWordCount(projectDetails);
+  const isTooShort = projectDetails.trim().length > 0 && wordCount < MIN_WORDS;
+
   const handleValidate = async () => {
-    if (!projectDetails.trim()) return;
+    if (!projectDetails.trim() || wordCount < MIN_WORDS) return;
 
     setValidationState({ result: null, pending: true, error: undefined });
 
@@ -42,15 +51,26 @@ export default function AIValidationPage() {
         <CardContent className="space-y-6">
           <div className="space-y-2">
             <Textarea
-              placeholder="Paste the full description, methodology, and any relevant links for the project here..."
+              placeholder="Paste the full description, methodology, location, certifications, and measurable impact of the carbon offset project here (minimum 30 words)..."
               value={projectDetails}
               onChange={(e) => setProjectDetails(e.target.value)}
               className="min-h-[200px]"
               disabled={validationState.pending}
             />
+            <div className="flex items-center justify-between text-sm">
+              <span className={isTooShort ? 'text-destructive font-medium' : 'text-muted-foreground'}>
+                {wordCount} / {MIN_WORDS} words minimum
+              </span>
+              {isTooShort && (
+                <span className="text-destructive text-xs flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" />
+                  Please provide more detail for a meaningful assessment
+                </span>
+              )}
+            </div>
           </div>
           <div>
-            <Button onClick={handleValidate} disabled={validationState.pending || !projectDetails.trim()}>
+            <Button onClick={handleValidate} disabled={validationState.pending || !projectDetails.trim() || isTooShort}>
               {validationState.pending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

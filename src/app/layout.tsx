@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/app-shell';
 import { FirebaseClientProvider } from '@/firebase';
 import { CartProvider } from '@/context/CartContext';
 import { CartDrawer } from '@/components/CartDrawer';
+import { ThemeProvider } from 'next-themes';
 
 export const metadata: Metadata = {
   title: 'Bharat Carbon Exchange (BCX)',
@@ -22,18 +23,20 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
         <link
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..800;1,14..32,300..700&display=swap"
           rel="stylesheet"
         />
       </head>
-      <body className="font-body antialiased">
-        <FirebaseClientProvider>
-          <CartProvider>
-            <AppShell>{children}</AppShell>
-            <CartDrawer />
-          </CartProvider>
-        </FirebaseClientProvider>
-        <Toaster />
+      <body className="antialiased" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <FirebaseClientProvider>
+            <CartProvider>
+              <AppShell>{children}</AppShell>
+              <CartDrawer />
+            </CartProvider>
+          </FirebaseClientProvider>
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   );
